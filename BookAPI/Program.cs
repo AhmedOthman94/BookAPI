@@ -84,11 +84,13 @@ builder.Services.AddAuthentication(opts =>
 		ValidateIssuer = true,
 		ValidateAudience = true,
 		ValidateIssuerSigningKey = true,
+		ValidateLifetime = true,
 		ValidIssuer = builder.Configuration["Jwt:Issuer"],
 		ValidAudience = builder.Configuration["Jwt:Audience"],
 		IssuerSigningKey = new SymmetricSecurityKey(
 							Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-		)
+		),
+		ClockSkew = TimeSpan.Zero
 	};
 });
 
@@ -124,7 +126,7 @@ if (app.Environment.IsDevelopment())
 	{
 		options
 			.WithTitle("Book Management System API")
-			.WithTheme(ScalarTheme.Purple)
+			.WithTheme(ScalarTheme.Solarized)
 			.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
 	});
 }
