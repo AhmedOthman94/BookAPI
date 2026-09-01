@@ -13,7 +13,7 @@ namespace BookAPI.Entity
 		public DateTime PublishedAt { get; set; }
 		public int Stock {  get; set; }
 		public decimal Price { get; set; }
-		public DateTime CraetedAt { get; set; } = DateTime.UtcNow;
+		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 		public DateTime? UpdateAt { get; set; }
 	}
 }

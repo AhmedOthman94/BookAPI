@@ -67,7 +67,7 @@ namespace BookAPI.Data
 					Stock = random.Next(5, 150),
 					PublishedAt = DateTime.UtcNow.AddDays(-random.Next(30, 1800)),
 					AuthorId = author.Id,
-					CraetedAt = DateTime.UtcNow
+					CreatedAt = DateTime.UtcNow
 				});
 			}
 

@@ -41,7 +41,7 @@ namespace BookAPI.Configurations
 			builder.Property(b => b.PublishedAt)
 				.IsRequired();
 
-			builder.Property(b => b.CraetedAt)
+			builder.Property(b => b.CreatedAt)
 				.IsRequired()
 				.HasDefaultValueSql("GETUTCDATE()");
 
