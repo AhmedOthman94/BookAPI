@@ -1,6 +1,112 @@
-@BookAPI_HostAddress = http://localhost:5156
+@Host = https://localhost:7103
+@AuthorId = b760871c-5c77-4d2d-a55f-2b7f6867b01c
+@BookId = dad8315e-0c2b-43a9-948b-5f6d073c15d0
 
-GET {{BookAPI_HostAddress}}/weatherforecast/
+### ==========================================
+### 1. AUTHORS ENDPOINTS
+### ==========================================
+
+### Get Authors (Paginated & Sorted)
+GET {{Host}}/api/authors?pageNumber=1&pageSize=10&sortBy=name&sortDescending=false
 Accept: application/json
 
-###
+### Search Authors
+GET {{Host}}/api/authors/search?searchTerm=Robert&pageNumber=1&pageSize=5
+Accept: application/json
+
+### Get Author By ID (Replace @AuthorId with a valid GUID)
+GET {{Host}}/api/authors/{{AuthorId}}
+Accept: application/json
+
+### Create Author
+POST {{Host}}/api/authors
+Content-Type: application/json
+
+{
+  "name": "Robert C. Martin",
+  "bio": "Software engineer and author of Clean Code and Clean Architecture."
+}
+
+### Update Author (Replace @AuthorId with a valid GUID)
+PUT {{Host}}/api/authors/{{AuthorId}}
+Content-Type: application/json
+
+{
+  "name": "Robert C. Martin (Uncle Bob)",
+  "bio": "Renowned international speaker, software consultant, and book author."
+}
+
+### Delete Author (Replace @AuthorId with a valid GUID)
+DELETE {{Host}}/api/authors/{{AuthorId}}
+Accept: application/json
+
+
+### ==========================================
+### 2. BOOKS ENDPOINTS
+### ==========================================
+
+### Get Books (Paginated, Filtered & Sorted)
+GET {{Host}}/api/books?pageNumber=1&pageSize=10&sortBy=title&sortDescending=false
+Accept: application/json
+
+### Get Book By ID (Replace @BookId with a valid GUID)
+GET {{Host}}/api/books/{{BookId}}
+Accept: application/json
+
+### Create Book (Pass a valid AuthorId from your DB)
+POST {{Host}}/api/books
+Content-Type: application/json
+
+{
+  "title": "Clean Code: A Handbook of Agile Software Craftsmanship",
+  "isbn": "978-0-1323-5088-4",
+  "description": "Even bad code can function. But if code isn't clean, it can bring a development organization to its knees.",
+  "price": 44.99,
+  "stock": 50,
+  "authorId": "{{AuthorId}}",
+  "publishedAt": "2008-08-01T00:00:00Z"
+}
+
+### Update Book (Replace @BookId with a valid GUID)
+PUT {{Host}}/api/books/{{BookId}}
+Content-Type: application/json
+
+{
+  "title": "Clean Architecture: A Craftsman's Guide to Software Structure",
+  "isbn": "978-0-1344-9416-6",
+  "description": "Practical software architecture solutions from Uncle Bob.",
+  "price": 49.99,
+  "stock": 35,
+  "authorId": "{{AuthorId}}",
+  "publishedAt": "2017-09-20T00:00:00Z"
+}
+
+### Delete Book (Replace @BookId with a valid GUID)
+DELETE {{Host}}/api/books/{{BookId}}
+Accept: application/json
+
+
+### ==========================================
+### 3. ERROR HANDLING & VALIDATION TESTS
+### ==========================================
+
+### Test 400 Bad Request - FluentValidation Failure
+POST {{Host}}/api/books
+Content-Type: application/json
+
+{
+  "title": "",
+  "isbn": "invalid-isbn",
+  "price": -10.00,
+  "stock": -5,
+  "authorId": "00000000-0000-0000-0000-000000000000",
+  "publishedAt": "2099-01-01T00:00:00Z"
+}
+
+### Test 404 Not Found - Non-existing Book ID
+GET {{Host}}/api/books/00000000-0000-0000-0000-000000000001
+Accept: application/json
+
+### Test 400 Bad Request - Invalid Query Parameters
+GET {{Host}}/api/books?pageNumber=0&pageSize=200&sortBy=invalidColumn
+Accept: application/json
