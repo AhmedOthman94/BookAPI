@@ -11,12 +11,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BookAPI.Services
 {
-	public class BookService (ApplicationDBContext context,
-								IMapper mapper)
-	: IBookService
+	/// <summary>
+	/// Service implementation for managing Book entities, including advanced filtering, pagination, search, and CRUD operations.
+	/// </summary>
+	/// <param name="context">The database context instance for accessing book and author datasets.</param>
+	/// <param name="mapper">The AutoMapper instance used for projection and object mapping.</param>
+	public class BookService(
+		ApplicationDBContext context,
+		IMapper mapper)
+		: IBookService
 	{
+		/// <summary>
+		/// Retrieves a paginated list of books with support for keyword search, author filtering, publication date ranges, and custom sorting.
+		/// </summary>
+		/// <param name="queryParameters">The parameter object containing filtering, sorting, and pagination criteria.</param>
+		/// <returns>A <see cref="PaginatedResponse{T}"/> containing the projected <see cref="BookDto"/> collection.</returns>
 		public async Task<PaginatedResponse<BookDto>> GetBooksAsync(
-		BookQueryParameters queryParameters)
+			BookQueryParameters queryParameters)
 		{
 			var query = context.Books.AsNoTracking();
 
@@ -67,6 +78,13 @@ namespace BookAPI.Services
 			};
 		}
 
+		/// <summary>
+		/// Performs a targeted search for books matching a keyword in title, description, or author name with pagination.
+		/// </summary>
+		/// <param name="searchTerm">The keyword to search for across book attributes and associated author name.</param>
+		/// <param name="pageNumber">The requested page index (1-based).</param>
+		/// <param name="pageSize">The maximum number of records per page.</param>
+		/// <returns>A <see cref="PaginatedResponse{T}"/> containing matching <see cref="BookDto"/> items ordered by title.</returns>
 		public async Task<PaginatedResponse<BookDto>> SearchBooksAsync(
 			string searchTerm,
 			int pageNumber,
@@ -103,6 +121,12 @@ namespace BookAPI.Services
 			};
 		}
 
+		/// <summary>
+		/// Retrieves a single book by its unique identifier.
+		/// </summary>
+		/// <param name="id">The unique identifier (GUID) of the book.</param>
+		/// <returns>The mapped <see cref="BookDto"/> representing the requested book.</returns>
+		/// <exception cref="BookNotFoundException">Thrown when no book is found with the specified ID.</exception>
 		public async Task<BookDto> GetBookByIdAsync(Guid id)
 		{
 			var bookDto = await context.Books
@@ -117,6 +141,13 @@ namespace BookAPI.Services
 			return bookDto;
 		}
 
+		/// <summary>
+		/// Creates a new book record after verifying foreign key relationships and ensuring title uniqueness.
+		/// </summary>
+		/// <param name="createBookDto">The data transfer object containing the details for the new book.</param>
+		/// <returns>The created <see cref="BookDto"/> fetched with its complete relationship details.</returns>
+		/// <exception cref="AuthorNotFoundException">Thrown when the specified <c>AuthorId</c> does not exist.</exception>
+		/// <exception cref="DuplicateBookException">Thrown when a book with the exact same title already exists.</exception>
 		public async Task<BookDto> CreateBookAsync(CreateBookDto createBookDto)
 		{
 			var authorExists = await context.Authors
@@ -141,6 +172,15 @@ namespace BookAPI.Services
 			return await GetBookByIdAsync(book.Id);
 		}
 
+		/// <summary>
+		/// Updates an existing book entity after validating the author reference and ensuring title uniqueness.
+		/// </summary>
+		/// <param name="id">The unique identifier (GUID) of the book to update.</param>
+		/// <param name="updateBookDto">The data transfer object containing updated property values.</param>
+		/// <returns>The updated <see cref="BookDto"/> with refreshed data.</returns>
+		/// <exception cref="BookNotFoundException">Thrown when no book is found with the specified ID.</exception>
+		/// <exception cref="AuthorNotFoundException">Thrown when the updated <c>AuthorId</c> does not exist.</exception>
+		/// <exception cref="DuplicateBookException">Thrown when another book already uses the target title.</exception>
 		public async Task<BookDto> UpdateBookAsync(Guid id, UpdateBookDto updateBookDto)
 		{
 			var book = await context.Books.FirstOrDefaultAsync(b => b.Id == id);
@@ -168,6 +208,11 @@ namespace BookAPI.Services
 			return await GetBookByIdAsync(book.Id);
 		}
 
+		/// <summary>
+		/// Deletes a book entity from the database by its unique identifier.
+		/// </summary>
+		/// <param name="id">The unique identifier (GUID) of the book to delete.</param>
+		/// <exception cref="BookNotFoundException">Thrown when no book is found with the specified ID.</exception>
 		public async Task DeleteBookAsync(Guid id)
 		{
 			var book = await context.Books.FirstOrDefaultAsync(b => b.Id == id);
@@ -179,6 +224,12 @@ namespace BookAPI.Services
 			await context.SaveChangesAsync();
 		}
 
+		/// <summary>
+		/// Applies dynamic sorting to the book query based on the field name and direction provided in parameters.
+		/// </summary>
+		/// <param name="query">The input book queryable collection.</param>
+		/// <param name="parameters">Query parameters specifying sort key and order direction.</param>
+		/// <returns>The sorted <see cref="IQueryable{Book}"/> query.</returns>
 		private static IQueryable<Book> ApplySorting(
 			IQueryable<Book> query,
 			BookQueryParameters parameters)

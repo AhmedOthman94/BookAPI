@@ -1,178 +1,81 @@
 @BookAPI_HostAddress = https://localhost:7103
-@authToken = ""
-@refreshToken = ""
-@authorId = 00000000-0000-0000-0000-000000000000
-@bookId = 00000000-0000-0000-0000-000000000000
 
-### ------------------------------------------------------------------------
-### AUTHENTICATION ENDPOINTS
-### ------------------------------------------------------------------------
+### 1. Authors Endpoints
 
-### 1. Register User / Admin
-POST {{BookAPI_HostAddress}}/api/auth/register
-Content-Type: application/json
-
-{
-  "firstName": "Admin",
-  "lastName": "User",
-  "email": "admin@example.com",
-  "username": "adminuser",
-  "password": "Password123!"
-}
-
-> {%
-    if (response.status === 200 && response.body.data) {
-        client.global.set("authToken", response.body.data.token);
-        client.global.set("refreshToken", response.body.data.refreshToken);
-    }
-%}
-
----
-
-### 2. Login
-POST {{BookAPI_HostAddress}}/api/auth/login
-Content-Type: application/json
-
-{
-  "email": "admin@example.com",
-  "password": "Password123!"
-}
-
-> {%
-    if (response.status === 200 && response.body.data) {
-        client.global.set("authToken", response.body.data.token);
-        client.global.set("refreshToken", response.body.data.refreshToken);
-    }
-%}
-
----
-
-### 3. Refresh Token
-POST {{BookAPI_HostAddress}}/api/auth/refresh-token
-Content-Type: application/json
-
-{
-  "token": "{{authToken}}",
-  "refreshToken": "{{refreshToken}}"
-}
-
-> {%
-    if (response.status === 200 && response.body.data) {
-        client.global.set("authToken", response.body.data.token);
-        client.global.set("refreshToken", response.body.data.refreshToken);
-    }
-%}
-
----
-
-### ------------------------------------------------------------------------
-### AUTHORS ENDPOINTS
-### ------------------------------------------------------------------------
-
-### 4. Get All Authors (Public)
-GET {{BookAPI_HostAddress}}/api/authors?pageNumber=1&pageSize=10
+### Get All Authors (Paginated, Search & Sorting)
+GET {{BookAPI_HostAddress}}/api/authors?PageNumber=1&PageSize=10&SearchTerm=George&SortBy=name&SortDescending=false
 Accept: application/json
 
----
-
-### 5. Search Authors (Public)
-GET {{BookAPI_HostAddress}}/api/authors/search?searchTerm=John&pageNumber=1&pageSize=10
+### Search Authors
+GET {{BookAPI_HostAddress}}/api/authors/search?searchTerm=Orwell&pageNumber=1&pageSize=10
 Accept: application/json
 
----
-
-### 6. Get Author By ID (Public)
-GET {{BookAPI_HostAddress}}/api/authors/{{authorId}}
+### Get Author By ID
+GET {{BookAPI_HostAddress}}/api/authors/3fa85f64-5717-4562-b3fc-2c963f66afa6
 Accept: application/json
 
----
-
-### 7. Create Author (Admin Only)
+### Create Author
 POST {{BookAPI_HostAddress}}/api/authors
-Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "name": "Robert C. Martin",
-  "bio": "Software engineer and author, known for agile software development principles."
+  "name": "George Orwell",
+  "bio": "English novelist, essayist, journalist, and critic."
 }
 
-> {%
-    if (response.status === 201 && response.body.data) {
-        client.global.set("authorId", response.body.data.id);
-    }
-%}
-
----
-
-### 8. Update Author (Admin Only)
-PUT {{BookAPI_HostAddress}}/api/authors/{{authorId}}
-Authorization: Bearer {{authToken}}
+### Update Author
+PUT {{BookAPI_HostAddress}}/api/authors/3fa85f64-5717-4562-b3fc-2c963f66afa6
 Content-Type: application/json
 
 {
-  "name": "Uncle Bob (Robert C. Martin)",
-  "bio": "Updated bio: Software engineering pioneer and Clean Code advocate."
+  "name": "George Orwell Updated",
+  "bio": "Updated biography details."
 }
 
----
+### Delete Author
+DELETE {{BookAPI_HostAddress}}/api/authors/3fa85f64-5717-4562-b3fc-2c963f66afa6
 
-### 9. Delete Author (Admin Only)
-DELETE {{BookAPI_HostAddress}}/api/authors/{{authorId}}
-Authorization: Bearer {{authToken}}
 
 ---
 
-### ------------------------------------------------------------------------
-### BOOKS ENDPOINTS
-### ------------------------------------------------------------------------
 
-### 10. Get All Books (Public)
-GET {{BookAPI_HostAddress}}/api/books?pageNumber=1&pageSize=10
+### 2. Books Endpoints
+
+### Get All Books (Paginated, Search, Filtering & Sorting)
+GET {{BookAPI_HostAddress}}/api/books?PageNumber=1&PageSize=10&SearchTerm=1984&AuthorId=3fa85f64-5717-4562-b3fc-2c963f66afa6&SortBy=price&SortDescending=true
 Accept: application/json
 
----
-
-### 11. Get Book By ID (Public)
-GET {{BookAPI_HostAddress}}/api/books/{{bookId}}
+### Get Book By ID
+GET {{BookAPI_HostAddress}}/api/books/7e24a180-2a44-42b3-a1d2-0056972621a1
 Accept: application/json
 
----
-
-### 12. Create Book (Admin Only)
+### Create Book
 POST {{BookAPI_HostAddress}}/api/books
-Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "title": "Clean Code: A Handbook of Agile Software Craftsmanship",
-  "description": "Even bad code can function. But if code isn't clean, it can bring a development organization to its knees.",
-  "publishedYear": 2008,
-  "authorId": "{{authorId}}"
+  "title": "1984",
+  "isbn": "978-0451524935",
+  "description": "A dystopian social science fiction novel.",
+  "price": 14.99,
+  "stock": 100,
+  "authorId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "publishedAt": "1949-06-08T00:00:00Z"
 }
 
-> {%
-    if (response.status === 201 && response.body.data) {
-        client.global.set("bookId", response.body.data.id);
-    }
-%}
-
----
-
-### 13. Update Book (Admin Only)
-PUT {{BookAPI_HostAddress}}/api/books/{{bookId}}
-Authorization: Bearer {{authToken}}
+### Update Book
+PUT {{BookAPI_HostAddress}}/api/books/7e24a180-2a44-42b3-a1d2-0056972621a1
 Content-Type: application/json
 
 {
-  "title": "Clean Code - Second Edition",
-  "description": "Updated edition focusing on software quality and maintainability.",
-  "publishedYear": 2009,
-  "authorId": "{{authorId}}"
+  "title": "1984 - Collector's Edition",
+  "isbn": "978-0451524935",
+  "description": "Updated dystopian classic description.",
+  "price": 19.99,
+  "stock": 80,
+  "authorId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "publishedAt": "1949-06-08T00:00:00Z"
 }
 
----
-
-### 14. Delete Book (Admin Only)
-DELETE {{BookAPI_HostAddress}}/api/books/{{bookId}}
-Authorization: Bearer {{authToken}}
+### Delete Book
+DELETE {{BookAPI_HostAddress}}/api/books/7e24a180-2a44-42b3-a1d2-0056972621a1

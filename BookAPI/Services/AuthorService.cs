@@ -11,12 +11,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BookAPI.Services
 {
-	public class AuthorService (ApplicationDBContext context,
-								IMapper mapper)
-	: IAuthorService
+	/// <summary>
+	/// Service implementation for managing Author entities, including querying, pagination, searching, and CRUD operations.
+	/// </summary>
+	/// <param name="context">The database context instance for accessing author entity sets.</param>
+	/// <param name="mapper">The AutoMapper instance for mapping entities and DTOs.</param>
+	public class AuthorService(
+		ApplicationDBContext context,
+		IMapper mapper)
+		: IAuthorService
 	{
+		/// <summary>
+		/// Retrieves a paginated list of authors applying filtering, sorting, and projection to <see cref="AuthorDto"/>.
+		/// </summary>
+
+		/// <param name="queryParameters">Query parameters containing pagination, search term, and sorting preferences.</param>
+		/// <returns>A <see cref="PaginatedResponse{T}"/> containing the paginated collection of <see cref="AuthorDto"/> items.</returns>
 		public async Task<PaginatedResponse<AuthorDto>> GetAuthorsAsync(
-		AuthorQueryParameters queryParameters)
+			AuthorQueryParameters queryParameters)
 		{
 			var query = context.Authors.AsNoTracking();
 
@@ -51,6 +63,14 @@ namespace BookAPI.Services
 			};
 		}
 
+		/// <summary>
+		/// Searches for authors matching a search keyword in their name or biography with pagination.
+		/// </summary>
+
+		/// <param name="searchTerm">The keyword used to filter authors by name or bio.</param>
+		/// <param name="pageNumber">The requested page index (1-based).</param>
+		/// <param name="pageSize">The maximum number of items per page.</param>
+		/// <returns>A <see cref="PaginatedResponse{T}"/> containing matching <see cref="AuthorDto"/> items.</returns>
 		public async Task<PaginatedResponse<AuthorDto>> SearchAuthorsAsync(
 			string searchTerm,
 			int pageNumber,
@@ -87,6 +107,13 @@ namespace BookAPI.Services
 			};
 		}
 
+		/// <summary>
+		/// Retrieves detailed information for a specific author by their unique identifier.
+		/// </summary>
+
+		/// <param name="id">The unique identifier (GUID) of the author.</param>
+		/// <returns>The <see cref="AuthorDto"/> representing the author.</returns>
+		/// <exception cref="AuthorNotFoundException">Thrown when no author is found with the specified ID.</exception>
 		public async Task<AuthorDto> GetAuthorByIdAsync(Guid id)
 		{
 			var authorDto = await context.Authors
@@ -101,6 +128,13 @@ namespace BookAPI.Services
 			return authorDto;
 		}
 
+		/// <summary>
+		/// Creates a new author entry after validating that no duplicate name exists.
+		/// </summary>
+
+		/// <param name="createAuthorDto">The data transfer object containing new author details.</param>
+		/// <returns>The created <see cref="AuthorDto"/> mapped from the saved entity.</returns>
+		/// <exception cref="DuplicateAuthorException">Thrown when an author with the same name already exists.</exception>
 		public async Task<AuthorDto> CreateAuthorAsync(
 			CreateAuthorDto createAuthorDto)
 		{
@@ -121,6 +155,15 @@ namespace BookAPI.Services
 			return mapper.Map<AuthorDto>(author);
 		}
 
+		/// <summary>
+		/// Updates an existing author's details while ensuring name uniqueness across other authors.
+		/// </summary>
+
+		/// <param name="id">The unique identifier (GUID) of the author to update.</param>
+		/// <param name="updateAuthorDto">The data transfer object containing updated details.</param>
+		/// <returns>The updated <see cref="AuthorDto"/> reflecting the changes.</returns>
+		/// <exception cref="AuthorNotFoundException">Thrown when no author is found with the specified ID.</exception>
+		/// <exception cref="DuplicateAuthorException">Thrown when another author already uses the provided name.</exception>
 		public async Task<AuthorDto> UpdateAuthorAsync(
 			Guid id,
 			UpdateAuthorDto updateAuthorDto)
@@ -146,6 +189,13 @@ namespace BookAPI.Services
 			return mapper.Map<AuthorDto>(author);
 		}
 
+		/// <summary>
+		/// Removes an author from the database by their unique identifier.
+		/// </summary>
+
+		/// <param name="id">The unique identifier (GUID) of the author to delete.</param>
+
+		/// <exception cref="AuthorNotFoundException">Thrown when no author is found with the specified ID.</exception>
 		public async Task DeleteAuthorAsync(Guid id)
 		{
 			var author = await context.Authors
@@ -159,6 +209,13 @@ namespace BookAPI.Services
 			await context.SaveChangesAsync();
 		}
 
+		/// <summary>
+		/// Applies dynamic sorting to the author query based on specified query parameters.
+		/// </summary>
+
+		/// <param name="query">The input author queryable collection.</param>
+		/// <param name="parameters">Query parameters containing sort key and direction preferences.</param>
+		/// <returns>The sorted <see cref="IQueryable{Author}"/> query.</returns>
 		private static IQueryable<Author> ApplySorting(
 			IQueryable<Author> query,
 			AuthorQueryParameters parameters)

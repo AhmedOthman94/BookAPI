@@ -15,17 +15,28 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Controllers & Core Services
+// Service Registration Phase
+
+/// <summary>
+/// Registers API controllers for routing and handling incoming HTTP requests.
+/// </summary>
 builder.Services.AddControllers();
 
-// Global Exception Handling & Problem Details
+/// <summary>
+/// Configures global exception handling infrastructure and standard RFC 7807 Problem Details.
+/// </summary>
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-// FluentValidation Registration
+/// <summary>
+/// Scans and registers all FluentValidation validators contained within the assembly.
+/// </summary>
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
-// Database & ASP.NET Core Identity Configuration
+/// <summary>
+/// Configures Entity Framework Core database context with SQL Server 
+/// and registers ASP.NET Core Identity services utilizing Guid primary keys.
+/// </summary>
 builder.Services.AddDbContext<ApplicationDBContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -40,8 +51,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
 .AddEntityFrameworkStores<ApplicationDBContext>()
 .AddDefaultTokenProviders();
 
-
-// Authentication & JWT Setup
+/// <summary>
+/// Configures JWT Bearer authentication scheme and token validation rules.
+/// </summary>
 builder.Services.AddAuthentication(opts =>
 {
 	opts.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -65,7 +77,9 @@ builder.Services.AddAuthentication(opts =>
 	};
 });
 
-// AutoMapper & Application Services (Dependency Injection)
+/// <summary>
+/// Configures AutoMapper profiles and registers application layer services into DI container.
+/// </summary>
 builder.Services.AddAutoMapper(cfg =>
 {
 	cfg.AddProfile<BookProfile>();
@@ -76,7 +90,9 @@ builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// OpenAPI Document Configuration
+/// <summary>
+/// Configures OpenAPI 3.0 specification details and sets up global JWT Bearer security scheme for Scalar UI.
+/// </summary>
 builder.Services.AddOpenApi("v1", options =>
 {
 	options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
@@ -117,7 +133,11 @@ builder.Services.AddOpenApi("v1", options =>
 
 var app = builder.Build();
 
-// Database Seeding
+// Database Seeding & Startup Operations
+
+/// <summary>
+/// Initializes and seeds required initial roles, administrator account, and seed data upon application startup.
+/// </summary>
 using (var scope = app.Services.CreateScope())
 {
 	var services = scope.ServiceProvider;
@@ -127,11 +147,13 @@ using (var scope = app.Services.CreateScope())
 		var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 		var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
+		// Seed "Admin" role if it does not exist
 		if (!await roleManager.RoleExistsAsync("Admin"))
 		{
 			await roleManager.CreateAsync(new IdentityRole<Guid> { Name = "Admin" });
 		}
 
+		// Seed initial System Admin user account
 		var adminEmail = "admin@example.com";
 		var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
@@ -152,6 +174,7 @@ using (var scope = app.Services.CreateScope())
 			}
 		}
 
+		// Run domain entity database seeder
 		await DatabaseSeeder.SeedAsync(context, roleManager);
 	}
 	catch (Exception ex)
@@ -161,10 +184,16 @@ using (var scope = app.Services.CreateScope())
 	}
 }
 
+// Middleware Pipeline Execution
 
-// Request Pipeline & Middlewares
+/// <summary>
+/// Configures global exception handling middleware.
+/// </summary>
 app.UseExceptionHandler();
 
+/// <summary>
+/// Configures OpenAPI endpoints and visual Interactive Documentation using Scalar UI in development mode.
+/// </summary>
 if (app.Environment.IsDevelopment())
 {
 	app.MapOpenApi();
@@ -181,9 +210,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+/// <summary>
+/// Enables Authentication and Authorization middlewares.
+/// </summary>
 app.UseAuthentication();
 app.UseAuthorization();
 
+/// <summary>
+/// Maps controller endpoints to the routing system.
+/// </summary>
 app.MapControllers();
 
+/// <summary>
+/// Runs the application and starts listening for HTTP requests.
+/// </summary>
 app.Run();
