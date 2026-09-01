@@ -12,6 +12,6 @@
 		public int Stock { get; set; }
 
 		public Guid AuthorId { get; set; }
-		public DateTime PublishedDate {  get; set; }
+		public DateTime PublishedAt {  get; set; }
 	}
 }

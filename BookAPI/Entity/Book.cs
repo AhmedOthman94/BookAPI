@@ -10,7 +10,7 @@ namespace BookAPI.Entity
 		public Guid AuthorId { get; set; }
 		public Author Author { get; set; } = null!;
 		public string Description { get; set; } = string.Empty;
-		public DateTime PublishedDate { get; set; }
+		public DateTime PublishedAt { get; set; }
 		public int Stock {  get; set; }
 		public decimal Price { get; set; }
 		public DateTime CraetedAt { get; set; } = DateTime.UtcNow;

@@ -16,7 +16,7 @@
 		public Guid AuthorId { get; set; }
 
 		public string AuthorName { get; set; } = string.Empty;
-		public DateTime PublishedDate { get; set; }
+		public DateTime PublishedAt { get; set; }
 
 		public DateTime CreatedAt { get; set; }
 	}
