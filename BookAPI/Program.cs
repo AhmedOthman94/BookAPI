@@ -35,9 +35,11 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
 	options.Password.RequireLowercase = true;
 	options.Password.RequireUppercase = true;
 	options.Password.RequiredLength = 8;
+	options.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<ApplicationDBContext>()
 .AddDefaultTokenProviders();
+
 
 // Authentication & JWT Setup
 builder.Services.AddAuthentication(opts =>
@@ -72,7 +74,6 @@ builder.Services.AddAutoMapper(cfg =>
 
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
-
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // OpenAPI Document Configuration
@@ -124,6 +125,32 @@ using (var scope = app.Services.CreateScope())
 	{
 		var context = services.GetRequiredService<ApplicationDBContext>();
 		var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+		var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+
+		if (!await roleManager.RoleExistsAsync("Admin"))
+		{
+			await roleManager.CreateAsync(new IdentityRole<Guid> { Name = "Admin" });
+		}
+
+		var adminEmail = "admin@example.com";
+		var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+		if (adminUser == null)
+		{
+			var newAdmin = new ApplicationUser
+			{
+				FullName = "System Admin",
+				UserName = "admin",
+				Email = adminEmail,
+				EmailConfirmed = true
+			};
+
+			var result = await userManager.CreateAsync(newAdmin, "Password123!");
+			if (result.Succeeded)
+			{
+				await userManager.AddToRoleAsync(newAdmin, "Admin");
+			}
+		}
 
 		await DatabaseSeeder.SeedAsync(context, roleManager);
 	}
@@ -133,6 +160,7 @@ using (var scope = app.Services.CreateScope())
 		logger.LogError(ex, "An error occurred while seeding the database and roles.");
 	}
 }
+
 
 // Request Pipeline & Middlewares
 app.UseExceptionHandler();
