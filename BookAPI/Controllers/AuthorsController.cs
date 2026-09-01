@@ -3,6 +3,7 @@ using BookAPI.Entity;
 using BookAPI.Parameters;
 using BookAPI.Responses;
 using BookAPI.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +11,11 @@ namespace BookAPI.Controllers
 {
 	[Route("api/authors")]
 	[ApiController]
-	public class AuthorsController (IAuthorService authorService)
-	: ControllerBase
+	public class AuthorsController(IAuthorService authorService)
+		: ControllerBase
 	{
 		[HttpGet]
+		[AllowAnonymous]
 		[ProducesResponseType(typeof(ApiResponse<PaginatedResponse<AuthorDto>>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> GetAuthors([FromQuery] AuthorQueryParameters queryParameters)
@@ -24,6 +26,7 @@ namespace BookAPI.Controllers
 		}
 
 		[HttpGet("search")]
+		[AllowAnonymous]
 		[ProducesResponseType(typeof(ApiResponse<PaginatedResponse<AuthorDto>>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> SearchAuthors(
@@ -37,6 +40,7 @@ namespace BookAPI.Controllers
 		}
 
 		[HttpGet("{id:guid}")]
+		[AllowAnonymous]
 		[ProducesResponseType(typeof(ApiResponse<AuthorDto>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
 		public async Task<IActionResult> GetAuthorById(Guid id)
@@ -47,8 +51,11 @@ namespace BookAPI.Controllers
 		}
 
 		[HttpPost]
+		[Authorize(Roles = "Admin")]
 		[ProducesResponseType(typeof(ApiResponse<AuthorDto>), StatusCodes.Status201Created)]
 		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
 		public async Task<IActionResult> CreateAuthor([FromBody] CreateAuthorDto createAuthorDto)
 		{
@@ -61,8 +68,11 @@ namespace BookAPI.Controllers
 		}
 
 		[HttpPut("{id:guid}")]
+		[Authorize(Roles = "Admin")]
 		[ProducesResponseType(typeof(ApiResponse<AuthorDto>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
 		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
 		public async Task<IActionResult> UpdateAuthor(Guid id, [FromBody] UpdateAuthorDto updateAuthorDto)
@@ -73,7 +83,10 @@ namespace BookAPI.Controllers
 		}
 
 		[HttpDelete("{id:guid}")]
+		[Authorize(Roles = "Admin")]
 		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
 		public async Task<IActionResult> DeleteAuthor(Guid id)
 		{

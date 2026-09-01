@@ -1,12 +1,16 @@
 ﻿using BookAPI.Entity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookAPI.Data
 {
 	public static class DatabaseSeeder
 	{
-		public static async Task SeedAsync(ApplicationDBContext context)
+		public static async Task SeedAsync(ApplicationDBContext context,
+							RoleManager<IdentityRole<Guid>> roleManager)
 		{
+			await SeedRolesAsync(roleManager);
+
 			if (context.Database.IsRelational())
 			{
 				await context.Database.MigrateAsync();
@@ -72,6 +76,25 @@ namespace BookAPI.Data
 			}
 
 			return books;
+		}
+
+		private static async Task SeedRolesAsync(
+					RoleManager<IdentityRole<Guid>> roleManager)
+		{
+			string[] roles =
+			[
+				"User",
+				"Admin"
+			];
+
+			foreach (var role in roles)
+			{
+				if (!await roleManager.RoleExistsAsync(role))
+				{
+					await roleManager.CreateAsync(
+					new IdentityRole<Guid>(role));
+				}
+			}
 		}
 	}
 }
